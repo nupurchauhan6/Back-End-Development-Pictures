@@ -30,13 +30,16 @@ def count():
     return {"message": "Internal server error"}, 500
 
 
+
 ######################################################################
 # GET ALL PICTURES
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    if data:
+        return jsonify(data), 200
 
+    return {"message": "Internal server error"}, 500
 ######################################################################
 # GET A PICTURE
 ######################################################################
@@ -44,7 +47,13 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    found = False
+    for picture in data:
+        if picture['id'] == id:
+            found = True
+            return jsonify(picture), 200
+
+    return {"message": "Picture not found."}, 404
 
 
 ######################################################################
@@ -52,7 +61,19 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    request_body = request.get_json()
+
+    found = False
+    for picture in data:
+        if picture['id'] == request_body['id']:
+            found = True
+            break
+
+    if found == True:
+        return {"Message": f"picture with id {request_body['id']} already present"}, 302
+    else:
+        data.append(request_body)
+        return jsonify(request_body), 201
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +82,39 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    request_body = request.get_json()
+
+    found = False
+    found_index = 0
+    for index, picture in enumerate(data):
+        if picture['id'] == request_body['id']:
+            found = True
+            found_index = index
+            break
+
+    if found:
+        data[found_index] = request_body
+        return jsonify(request_body), 204
+
+    return {"message": "Internal server error"}, 500
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
+
+
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    found = False
+    found_index = 0
+    for index, picture in enumerate(data):
+        if picture['id'] == id:
+            found = True
+            found_index = index
+            break
+    
+    if found:
+        data.pop(found_index)
+        return {"message": "Picture deleted successfully."}, 204
+
+    return {"message": "Picture not found."}, 404
